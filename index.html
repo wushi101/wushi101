@@ -1,0 +1,38 @@
+<div class="nav-btn active" onclick="selectTab(this, '游戏')">游戏</div>
+    <div class="nav-btn" onclick="selectTab(this, '白资')">白资</div>
+    <div class="nav-btn" onclick="selectTab(this, '承兑')">承兑</div>
+    <div class="nav-btn" onclick="selectTab(this, '查档')">查档</div>
+    <div class="nav-btn" onclick="selectTab(this, '开发')">开发</div>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const groupItems = document.querySelectorAll('.group-item');
+    let currentCategory = '游戏'; // 默认分类
+
+    searchInput.addEventListener('input', filterGroups);
+
+    function selectTab(btn, category) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCategory = category;
+      filterGroups();
+    }
+
+    function filterGroups() {
+      const keyword = searchInput.value.toLowerCase();
+      groupItems.forEach(item => {
+        const name = item.querySelector('.name').textContent.toLowerCase();
+        const category = item.getAttribute('data-category');
+        const matchKeyword = name.includes(keyword);
+        const matchCategory = category === currentCategory;
+        item.style.display = matchKeyword && matchCategory ? 'flex' : 'none';
+      });
+    }
+
+    // 初始化显示默认分类
+    window.onload = () => filterGroups();
+  </script>
+
+</body>
+</html>
