@@ -1,38 +1,168 @@
-<div class="nav-btn active" onclick="selectTab(this, '游戏')">游戏</div>
-    <div class="nav-btn" onclick="selectTab(this, '白资')">白资</div>
-    <div class="nav-btn" onclick="selectTab(this, '承兑')">承兑</div>
-    <div class="nav-btn" onclick="selectTab(this, '查档')">查档</div>
-    <div class="nav-btn" onclick="selectTab(this, '开发')">开发</div>
-  </div>
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>群组展示</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background: #fff;
+      color: #000;
+    }
 
+    .search {
+      padding: 12px;
+      background-color: #f5f5f5;
+    }
+
+    .search-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: #f0f0f0;
+      border-radius: 22px;
+      overflow: hidden;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      color: #8e8e93;
+      font-size: 16px;
+    }
+
+    .search input {
+      width: 100%;
+      padding: 10px 14px 10px 36px;
+      border: none;
+      border-radius: 22px;
+      font-size: 16px;
+      background: transparent;
+      outline: none;
+    }
+
+    .group-list {
+      padding: 0 16px;
+      margin-bottom: 72px;
+    }
+
+    .group-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .group-item img {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      margin-right: 12px;
+      object-fit: cover;
+    }
+
+    .group-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .name {
+      font-size: 16px;
+      font-weight: 500;
+      color: #212121;
+      margin-bottom: 4px;
+    }
+
+    .amount {
+      color: #d32f2f;
+      font-size: 14px;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+      border-top: 1px solid #e6e6e6;
+      background: #fff;
+      height: 56px;
+      align-items: center;
+      box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .nav-btn {
+      padding: 6px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn.active {
+      background: #3390ec;
+      color: #fff;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Telegram Web App SDK -->
   <script>
-    const searchInput = document.getElementById('searchInput');
-    const groupItems = document.querySelectorAll('.group-item');
-    let currentCategory = '游戏'; // 默认分类
-
-    searchInput.addEventListener('input', filterGroups);
-
-    function selectTab(btn, category) {
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentCategory = category;
-      filterGroups();
-    }
-
-    function filterGroups() {
-      const keyword = searchInput.value.toLowerCase();
-      groupItems.forEach(item => {
-        const name = item.querySelector('.name').textContent.toLowerCase();
-        const category = item.getAttribute('data-category');
-        const matchKeyword = name.includes(keyword);
-        const matchCategory = category === currentCategory;
-        item.style.display = matchKeyword && matchCategory ? 'flex' : 'none';
-      });
-    }
-
-    // 初始化显示默认分类
-    window.onload = () => filterGroups();
+    window.Telegram.WebApp.init();
+    document.title = "群组展示"; // 设置Telegram Mini App的标题
   </script>
 
-</body>
-</html>
+  <div class="search">
+    <div class="search-container">
+      <div class="search-icon">🔍</div>
+      <input type="text" id="searchInput" placeholder="搜索群组" />
+    </div>
+  </div>
+
+  <div class="group-list" id="groupList">
+    <div class="group-item" data-category="游戏">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg">
+      <div class="group-info">
+        <div class="name">游戏群 Alpha</div>
+        <div class="amount">已压金额 100 USDT</div>
+      </div>
+    </div>
+    <div class="group-item" data-category="白资">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg">
+      <div class="group-info">
+        <div class="name">白资交流群</div>
+        <div class="amount">已压金额 200 USDT</div>
+      </div>
+    </div>
+    <div class="group-item" data-category="承兑">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg">
+      <div class="group-info">
+        <div class="name">USDT 承兑频道</div>
+        <div class="amount">已压金额 150 USDT</div>
+      </div>
+    </div>
+    <div class="group-item" data-category="查档">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg">
+      <div class="group-info">
+        <div class="name">查档服务组</div>
+        <div class="amount">已压金额 180 USDT</div>
+      </div>
+    </div>
+    <div class="group-item" data-category="开发">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg">
+      <div class="group-info">
+        <div class="name">开发者之家</div>
+        <div class="amount">已压金额 300 USDT</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
