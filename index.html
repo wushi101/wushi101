@@ -10,9 +10,7 @@
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
       background: #121212;
-      color: #ffffff;
-      overflow: hidden;
-      height: 100vh;
+      color: #fff;
     }
 
     .search {
@@ -24,7 +22,7 @@
       position: relative;
       display: flex;
       align-items: center;
-      background: #2c2c2e;
+      background: #2a2a2a;
       border-radius: 22px;
       overflow: hidden;
     }
@@ -32,7 +30,7 @@
     .search-icon {
       position: absolute;
       left: 12px;
-      color: #a0a0a0;
+      color: #aaa;
       font-size: 16px;
     }
 
@@ -43,15 +41,13 @@
       border-radius: 22px;
       font-size: 16px;
       background: transparent;
+      color: #fff;
       outline: none;
-      color: #ffffff;
     }
 
     .group-list {
       padding: 0 16px;
       margin-bottom: 72px;
-      overflow-y: auto;
-      height: calc(100vh - 128px);
     }
 
     .group-item {
@@ -80,12 +76,12 @@
     .name {
       font-size: 16px;
       font-weight: 500;
-      color: #ffffff;
+      color: #fff;
       margin-bottom: 4px;
     }
 
     .amount {
-      color: #ff5252;
+      color: #f44336;
       font-size: 14px;
     }
 
@@ -96,17 +92,17 @@
       display: flex;
       justify-content: space-around;
       border-top: 1px solid #2a2a2a;
-      background: #1e1e1e;
+      background: #1a1a1a;
       height: 56px;
       align-items: center;
-      box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.2);
     }
 
     .nav-btn {
       padding: 6px 16px;
       border-radius: 18px;
       font-size: 14px;
-      color: #aaa;
+      color: #bbb;
       cursor: pointer;
       transition: all 0.2s ease;
     }
@@ -122,7 +118,7 @@
   <div class="search">
     <div class="search-container">
       <div class="search-icon">🔍</div>
-      <input type="text" id="searchInput" placeholder="搜索群组" aria-label="搜索群组" />
+      <input type="text" id="searchInput" placeholder="搜索群组" />
     </div>
   </div>
 
@@ -177,9 +173,9 @@
       if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
         tg.ready();
-        tg.setHeaderColor('bg_color');
         tg.expand();
-        tg.enableClosingConfirmation();
+        tg.setHeaderColor('bg_color');
+        tg.setupClosingBehavior({ need_confirmation: true });
         document.title = "群组展示";
       } else {
         document.body.innerHTML = '<p style="text-align:center;padding:20px;">请在 Telegram 应用中打开此页面</p>';
@@ -209,6 +205,12 @@
           item.style.display = matchKeyword && matchCategory ? 'flex' : 'none';
         });
       }
+
+      // 浏览器关闭提示（可选）
+      window.addEventListener('beforeunload', function (e) {
+        e.preventDefault();
+        e.returnValue = '你确定要关闭此页面吗？';
+      });
 
       filterGroups();
       window.selectTab = selectTab;
