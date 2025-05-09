@@ -177,6 +177,15 @@
         tg.setHeaderColor('bg_color');
         tg.setupClosingBehavior({ need_confirmation: true });
         document.title = "群组展示";
+        
+        // 启用返回按钮
+        tg.BackButton.show();
+        tg.BackButton.onClick(() => {
+          // 返回按钮被点击时执行的操作
+          if (confirm("确定要退出应用吗？")) {
+            tg.close();
+          }
+        });
       } else {
         document.body.innerHTML = '<p style="text-align:center;padding:20px;">请在 Telegram 应用中打开此页面</p>';
         return;
