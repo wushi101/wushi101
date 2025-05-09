@@ -12,6 +12,8 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
       background: #fff;
       color: #000;
+      overflow: hidden;
+      height: 100vh;
     }
 
     .search {
@@ -48,6 +50,8 @@
     .group-list {
       padding: 0 16px;
       margin-bottom: 72px;
+      overflow-y: auto;
+      height: calc(100vh - 128px);
     }
 
     .group-item {
@@ -118,7 +122,7 @@
   <div class="search">
     <div class="search-container">
       <div class="search-icon">🔍</div>
-      <input type="text" id="searchInput" placeholder="搜索群组" />
+      <input type="text" id="searchInput" placeholder="搜索群组" aria-label="搜索群组" />
     </div>
   </div>
 
@@ -168,13 +172,19 @@
     <div class="nav-btn" onclick="selectTab(this, '开发')">开发</div>
   </div>
 
-  <!-- 脚本放到底部，确保 DOM 加载完毕 -->
   <script>
     window.onload = () => {
-      const tg = window.Telegram.WebApp;
-      tg.expand();
-      tg.ready();
-      document.title = "群组展示";
+      if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.setHeaderColor('bg_color');
+        tg.expand();
+        tg.enableClosingConfirmation();
+        document.title = "群组展示";
+      } else {
+        document.body.innerHTML = '<p style="text-align:center;padding:20px;">请在 Telegram 应用中打开此页面</p>';
+        return;
+      }
 
       const searchInput = document.getElementById('searchInput');
       const groupItems = document.querySelectorAll('.group-item');
@@ -200,8 +210,8 @@
         });
       }
 
-      filterGroups(); // 初始化显示默认分类
-      window.selectTab = selectTab; // 使 selectTab 在全局作用域中可用
+      filterGroups();
+      window.selectTab = selectTab;
     };
   </script>
 </body>
