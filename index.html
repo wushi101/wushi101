@@ -4,6 +4,38 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>群组展示</title>
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.expand();
+  tg.ready();
+
+  const searchInput = document.getElementById('searchInput');
+  const groupItems = document.querySelectorAll('.group-item');
+  let currentCategory = '游戏';
+
+  searchInput.addEventListener('input', filterGroups);
+
+  function selectTab(btn, category) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentCategory = category;
+    filterGroups();
+  }
+
+  function filterGroups() {
+    const keyword = searchInput.value.toLowerCase();
+    groupItems.forEach(item => {
+      const name = item.querySelector('.name').textContent.toLowerCase();
+      const category = item.getAttribute('data-category');
+      const matchKeyword = name.includes(keyword);
+      const matchCategory = category === currentCategory;
+      item.style.display = matchKeyword && matchCategory ? 'flex' : 'none';
+    });
+  }
+
+  window.onload = () => filterGroups();
+</script>
+  
   <style>
     body {
       margin: 0;
