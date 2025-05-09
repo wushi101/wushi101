@@ -4,38 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>群组展示</title>
-<script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-  tg.ready();
-
-  const searchInput = document.getElementById('searchInput');
-  const groupItems = document.querySelectorAll('.group-item');
-  let currentCategory = '游戏';
-
-  searchInput.addEventListener('input', filterGroups);
-
-  function selectTab(btn, category) {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentCategory = category;
-    filterGroups();
-  }
-
-  function filterGroups() {
-    const keyword = searchInput.value.toLowerCase();
-    groupItems.forEach(item => {
-      const name = item.querySelector('.name').textContent.toLowerCase();
-      const category = item.getAttribute('data-category');
-      const matchKeyword = name.includes(keyword);
-      const matchCategory = category === currentCategory;
-      item.style.display = matchKeyword && matchCategory ? 'flex' : 'none';
-    });
-  }
-
-  window.onload = () => filterGroups();
-</script>
-  
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
       margin: 0;
@@ -145,13 +115,6 @@
   </style>
 </head>
 <body>
-
-  <!-- Telegram Web App SDK -->
-  <script>
-    window.Telegram.WebApp.init();
-    document.title = "群组展示"; // 设置Telegram Mini App的标题
-  </script>
-
   <div class="search">
     <div class="search-container">
       <div class="search-icon">🔍</div>
@@ -198,3 +161,48 @@
   </div>
 
   <div class="bottom-nav">
+    <div class="nav-btn active" onclick="selectTab(this, '游戏')">游戏</div>
+    <div class="nav-btn" onclick="selectTab(this, '白资')">白资</div>
+    <div class="nav-btn" onclick="selectTab(this, '承兑')">承兑</div>
+    <div class="nav-btn" onclick="selectTab(this, '查档')">查档</div>
+    <div class="nav-btn" onclick="selectTab(this, '开发')">开发</div>
+  </div>
+
+  <!-- 脚本放到底部，确保 DOM 加载完毕 -->
+  <script>
+    window.onload = () => {
+      const tg = window.Telegram.WebApp;
+      tg.expand();
+      tg.ready();
+      document.title = "群组展示";
+
+      const searchInput = document.getElementById('searchInput');
+      const groupItems = document.querySelectorAll('.group-item');
+      let currentCategory = '游戏';
+
+      searchInput.addEventListener('input', filterGroups);
+
+      function selectTab(btn, category) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCategory = category;
+        filterGroups();
+      }
+
+      function filterGroups() {
+        const keyword = searchInput.value.toLowerCase();
+        groupItems.forEach(item => {
+          const name = item.querySelector('.name').textContent.toLowerCase();
+          const category = item.getAttribute('data-category');
+          const matchKeyword = name.includes(keyword);
+          const matchCategory = category === currentCategory;
+          item.style.display = matchKeyword && matchCategory ? 'flex' : 'none';
+        });
+      }
+
+      filterGroups(); // 初始化显示默认分类
+      window.selectTab = selectTab; // 使 selectTab 在全局作用域中可用
+    };
+  </script>
+</body>
+</html>
