@@ -2,27 +2,57 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>群组展示</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body {
+    :root {
+      /* 默认为深色模式变量 */
+      --bg-color: #121212;
+      --secondary-bg: #1e1e1e;
+      --card-bg: #2a2a2a;
+      --text-color: #fff;
+      --secondary-text: #bbb;
+      --border-color: #2a2a2a;
+      --accent-color: #3390ec;
+      --search-bg: #2a2a2a;
+    }
+
+    /* 当light类应用到body时，切换为浅色模式变量 */
+    body.light {
+      --bg-color: #f0f2f5;
+      --secondary-bg: #ffffff;
+      --card-bg: #ffffff;
+      --text-color: #000000;
+      --secondary-text: #707579;
+      --border-color: #e6e6e6;
+      --accent-color: #3390ec;
+      --search-bg: #f2f2f2;
+    }
+
+    html, body {
       margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      position: fixed;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      background: #121212;
-      color: #fff;
+      background: var(--bg-color);
+      color: var(--text-color);
+      transition: all 0.3s ease;
     }
 
     .search {
       padding: 12px;
-      background-color: #1e1e1e;
+      background-color: var(--secondary-bg);
     }
 
     .search-container {
       position: relative;
       display: flex;
       align-items: center;
-      background: #2a2a2a;
+      background: var(--search-bg);
       border-radius: 22px;
       overflow: hidden;
     }
@@ -30,7 +60,7 @@
     .search-icon {
       position: absolute;
       left: 12px;
-      color: #aaa;
+      color: var(--secondary-text);
       font-size: 16px;
     }
 
@@ -41,7 +71,7 @@
       border-radius: 22px;
       font-size: 16px;
       background: transparent;
-      color: #fff;
+      color: var(--text-color);
       outline: none;
     }
 
@@ -54,7 +84,7 @@
       display: flex;
       align-items: center;
       padding: 12px 0;
-      border-bottom: 1px solid #2a2a2a;
+      border-bottom: 1px solid var(--border-color);
     }
 
     .group-item img {
@@ -76,7 +106,7 @@
     .name {
       font-size: 16px;
       font-weight: 500;
-      color: #fff;
+      color: var(--text-color);
       margin-bottom: 4px;
     }
 
@@ -91,24 +121,24 @@
       width: 100%;
       display: flex;
       justify-content: space-around;
-      border-top: 1px solid #2a2a2a;
-      background: #1a1a1a;
+      border-top: 1px solid var(--border-color);
+      background: var(--secondary-bg);
       height: 56px;
       align-items: center;
-      box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.1);
     }
 
     .nav-btn {
       padding: 6px 16px;
       border-radius: 18px;
       font-size: 14px;
-      color: #bbb;
+      color: var(--secondary-text);
       cursor: pointer;
       transition: all 0.2s ease;
     }
 
     .nav-btn.active {
-      background: #3390ec;
+      background: var(--accent-color);
       color: #fff;
       font-weight: 500;
     }
@@ -173,9 +203,42 @@
       if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
         tg.ready();
-        tg.expand();
-        tg.setHeaderColor('bg_color');
-        tg.setupClosingBehavior({ need_confirmation: true });
+        tg.expand();  // 展开到最大可用高度
+        tg.enableClosingConfirmation(); // 启用关闭确认
+        
+        // 根据 Telegram 主题设置应用颜色方案
+        const applyColorScheme = () => {
+          // 检查 Telegram WebApp 当前颜色主题
+          if (tg.colorScheme === 'light') {
+            document.body.classList.add('light');
+            tg.setHeaderColor('#f0f2f5'); // 设置标题栏为浅色
+          } else {
+            document.body.classList.remove('light');
+            tg.setHeaderColor('bg_color'); // 设置标题栏使用 Telegram 默认背景色
+          }
+        };
+        
+        // 应用初始颜色方案
+        applyColorScheme();
+        
+        // 监听主题变化事件
+        tg.onEvent('themeChanged', applyColorScheme);
+        
+        tg.MainButton.hide(); // 隐藏主按钮，如果存在的话
+        
+        // 锁定视口，防止用户缩放
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('touchmove', function (event) {
+          if (event.scale !== 1) { event.preventDefault(); }
+        }, { passive: false });
+        
+        // 强制全屏模式
+        document.documentElement.style.height = '100%';
+        document.body.style.height = '100%';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+        
         document.title = "群组展示";
         
         // 启用返回按钮
