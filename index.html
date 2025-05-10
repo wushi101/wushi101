@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>群组展示</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@telegram-apps/sdk@latest/dist/sdk.js"></script>
+  <script>
+    // 尝试在页面加载前尽早请求全屏
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof TelegramAppsSDK !== 'undefined' && TelegramAppsSDK.postEvent) {
+        TelegramAppsSDK.postEvent('web_app_request_fullscreen');
+        console.log('DOMContentLoaded: 请求全屏');
+      }
+    });
+  </script>
   <style>
     :root {
       /* 默认为深色模式变量 */
@@ -214,3 +224,167 @@
           </div>
         </div>
         <!-- 确保底部有足够空间，避免被导航栏遮挡 -->
+        <div class="bottom-spacer"></div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-btn active" onclick="selectTab(this, '游戏')">游戏</div>
+      <div class="nav-btn" onclick="selectTab(this, '白资')">白资</div>
+      <div class="nav-btn" onclick="selectTab(this, '承兑')">承兑</div>
+      <div class="nav-btn" onclick="selectTab(this, '查档')">查档</div>
+      <div class="nav-btn" onclick="selectTab(this, '开发')">开发</div>
+    </div>
+  </div>
+
+  <script>
+    // 导入Telegram Apps SDK
+    document.addEventListener('DOMContentLoaded', function() {
+      // 加载SDK脚本
+      const sdkScript = document.createElement('script');
+      sdkScript.src = 'https://cdn.jsdelivr.net/npm/@telegram-apps/sdk@latest/dist/sdk.js';
+      sdkScript.onload = function() {
+        console.log('Telegram Apps SDK 加载完成');
+        // SDK加载后尝试请求全屏
+        if (window.TelegramAppsSDK && window.TelegramAppsSDK.postEvent) {
+          window.TelegramAppsSDK.postEvent('web_app_request_fullscreen');
+          console.log('已发送全屏请求事件');
+        } else {
+          console.warn('TelegramAppsSDK postEvent 不可用');
+        }
+      };
+      document.head.appendChild(sdkScript);
+    });
+
+    window.onload = function() {
+      // 尝试直接使用SDK的postEvent (如果已经加载)
+      try {
+        if (window.TelegramAppsSDK && window.TelegramAppsSDK.postEvent) {
+          window.TelegramAppsSDK.postEvent('web_app_request_fullscreen');
+          console.log('onload时发送全屏请求事件');
+        }
+      } catch (e) {
+        console.error('请求全屏出错:', e);
+      }
+      
+      if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        
+        // 展开WebApp到最大高度
+        tg.expand();
+        
+        // 启用关闭确认
+        tg.enableClosingConfirmation();
+        
+        // 根据Telegram主题设置应用颜色方案
+        const applyColorScheme = () => {
+          if (tg.colorScheme === 'light') {
+            document.body.classList.add('light');
+            // 设置浅色模式下的状态栏颜色
+            if (tg.setHeaderColor) {
+              tg.setHeaderColor('#f0f2f5');
+            }
+          } else {
+            document.body.classList.remove('light');
+            // 设置深色模式下的状态栏颜色
+            if (tg.setHeaderColor) {
+              tg.setHeaderColor('bg_color');
+            }
+          }
+        };
+        
+        // 应用初始颜色方案
+        applyColorScheme();
+        
+        // 监听主题变化事件
+        tg.onEvent('themeChanged', applyColorScheme);
+        
+        // 尝试使用多种方法请求全屏
+        
+        // 方法1: 使用Telegram Apps SDK的postEvent
+        try {
+          if (typeof TelegramAppsSDK !== 'undefined' && TelegramAppsSDK.postEvent) {
+            TelegramAppsSDK.postEvent('web_app_request_fullscreen');
+            console.log("使用TelegramAppsSDK.postEvent请求全屏");
+          }
+        } catch (e) {
+          console.error("TelegramAppsSDK请求全屏出错:", e);
+        }
+        
+        // 方法2: 直接导入SDK模块并使用
+        try {
+          // 动态导入模块并请求全屏
+          import('https://cdn.jsdelivr.net/npm/@telegram-apps/sdk@latest/dist/esm/index.mjs')
+            .then(module => {
+              if (module.requestFullscreen && module.requestFullscreen.isAvailable()) {
+                module.requestFullscreen()
+                  .then(() => console.log("使用SDK模块成功请求全屏"))
+                  .catch(err => console.error("SDK模块请求全屏失败:", err));
+              }
+            })
+            .catch(err => console.error("导入SDK模块失败:", err));
+        } catch (e) {
+          console.error("动态导入SDK模块出错:", e);
+        }
+        
+        // 方法3: 使用WebApp API
+        if (tg.isVersionAtLeast && tg.isVersionAtLeast('6.10') && tg.viewportStable) {
+          // 新版API可能支持的全屏方法
+          if (typeof tg.requestViewport === 'function') {
+            tg.requestViewport({
+              width: '100%',
+              height: '100%',
+              is_fullscreen: true
+            });
+            console.log("使用tg.requestViewport请求全屏");
+          }
+        }
+
+        // 启用返回按钮
+        if (tg.BackButton) {
+          tg.BackButton.show();
+          tg.BackButton.onClick(() => {
+            if (confirm("确定要退出应用吗？")) {
+              tg.close();
+            }
+          });
+        }
+        
+        // 隐藏主按钮(如果存在)
+        if (tg.MainButton) {
+          tg.MainButton.hide();
+        }
+      } else {
+        // 非Telegram环境下的提示
+        const container = document.querySelector('.container');
+        container.innerHTML = '<div style="text-align:center;padding:20px;margin-top:50px;font-size:18px;">请在Telegram应用中打开此页面</div>';
+      }
+
+      // 搜索和分类功能
+      const searchInput = document.getElementById('searchInput');
+      const groupItems = document.querySelectorAll('.group-item');
+      let currentCategory = '游戏';
+
+      searchInput.addEventListener('input', filterGroups);
+
+      window.selectTab = function(btn, category) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCategory = category;
+        filterGroups();
+      };
+
+      function filterGroups() {
+        const keyword = searchInput.value.toLowerCase();
+        groupItems.forEach(item => {
+          const name = item.querySelector('.name').textContent.toLowerCase();
+          const category = item.getAttribute('data-category');
+          const matchKeyword = name.includes(keyword);
+          const matchCategory = category === currentCategory;
+          item.style.display = matchKeyword && matchCategory ? 'flex' : 'none';
+        });
+      }
+      
+      // 初始化过滤
+      filterGroups();
