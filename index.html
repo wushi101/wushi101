@@ -41,8 +41,31 @@
       transition: all 0.3s ease;
     }
 
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 48px;
+      background-color: var(--secondary-bg);
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding-right: 12px;
+      z-index: 999;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--text-color);
+      cursor: pointer;
+    }
+
     .search {
-      padding: 12px;
+      padding: 60px 12px 12px;
       background-color: var(--secondary-bg);
     }
 
@@ -143,6 +166,10 @@
   </style>
 </head>
 <body>
+  <div class="top-bar">
+    <button class="close-btn" onclick="Telegram.WebApp.close()">✕</button>
+  </div>
+
   <div class="search">
     <div class="search-container">
       <div class="search-icon">🔍</div>
@@ -199,7 +226,7 @@
   <script>
     window.onload = () => {
       if (window.Telegram && window.Telegram.WebApp) {
-        const tg = Telegram.WebApp;
+        const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
         tg.enableClosingConfirmation();
@@ -217,6 +244,14 @@
         applyColorScheme();
         tg.onEvent('themeChanged', applyColorScheme);
         tg.MainButton.hide();
+
+        console.log('viewportHeight:', tg.viewportHeight);
+        console.log('isFullscreen:', tg.isFullscreen);
+        console.log('isOrientationLocked:', tg.isOrientationLocked);
+        console.log('safeAreaInset:', tg.safeAreaInset);
+        console.log('contentSafeAreaInset:', tg.contentSafeAreaInset);
+        console.log('HapticFeedback:', tg.HapticFeedback);
+
         tg.BackButton.show();
         tg.BackButton.onClick(() => {
           if (confirm("确定要退出应用吗？")) {
@@ -224,57 +259,49 @@
           }
         });
 
-        // 打印新增字段值
-        console.log("viewportHeight:", tg.viewportHeight);
-        console.log("isFullscreen:", tg.isFullscreen);
-        console.log("isOrientationLocked:", tg.isOrientationLocked);
-        console.log("safeAreaInset:", tg.safeAreaInset);
-        console.log("contentSafeAreaInset:", tg.contentSafeAreaInset);
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('touchmove', e => {
+          if (e.scale !== 1) e.preventDefault();
+        }, { passive: false });
 
-        const haptic = tg.HapticFeedback;
-        function triggerHaptic(type = 'impact', style = 'light') {
-          if (!haptic) return;
-          switch (type) {
-            case 'impact': haptic.impactOccurred(style); break;
-            case 'notification': haptic.notificationOccurred(style); break;
-            case 'selection': haptic.selectionChanged(); break;
-          }
-        }
+        document.documentElement.style.height = '100%';
+        document.body.style.height = '100%';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
 
-        const searchInput = document.getElementById('searchInput');
-        const groupItems = document.querySelectorAll('.group-item');
-        let currentCategory = '游戏';
-
-        searchInput.addEventListener('input', filterGroups);
-
-        window.selectTab = function(btn, category) {
-          triggerHaptic('selection');
-          document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          currentCategory = category;
-          filterGroups();
-        }
-
-        function filterGroups() {
-          const keyword = searchInput.value.toLowerCase();
-          groupItems.forEach(item => {
-            const name = item.querySelector('.name').textContent.toLowerCase();
-            const category = item.getAttribute('data-category');
-            const matchKeyword = name.includes(keyword);
-            const matchCategory = category === currentCategory;
-            item.style.display = matchKeyword && matchCategory ? 'flex' : 'none';
-          });
-        }
-
-        window.addEventListener('beforeunload', function (e) {
-          e.preventDefault();
-          e.returnValue = '你确定要关闭此页面吗？';
-        });
-
-        filterGroups();
+        document.title = "群组展示";
       } else {
         document.body.innerHTML = '<p style="text-align:center;padding:20px;">请在 Telegram 应用中打开此页面</p>';
+        return;
       }
+
+      const searchInput = document.getElementById('searchInput');
+      const groupItems = document.querySelectorAll('.group-item');
+      let currentCategory = '游戏';
+
+      searchInput.addEventListener('input', filterGroups);
+
+      function selectTab(btn, category) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCategory = category;
+        filterGroups();
+      }
+
+      function filterGroups() {
+        const keyword = searchInput.value.toLowerCase();
+        groupItems.forEach(item => {
+          const name = item.querySelector('.name').textContent.toLowerCase();
+          const category = item.getAttribute('data-category');
+          const matchKeyword = name.includes(keyword);
+          const matchCategory = category === currentCategory;
+          item.style.display = matchKeyword && matchCategory ? 'flex' : 'none';
+        });
+      }
+
+      window.selectTab = selectTab;
+      filterGroups();
     };
   </script>
 </body>
