@@ -5,8 +5,90 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>群组展示</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    // 检测是否支持ES模块导入
+    const useModules = typeof import === 'function';
+    
+    // 如果支持模块导入，则使用函数方式的全屏API
+    async function setupFullscreenAPI() {
+      if (useModules) {
+        try {
+          // 动态导入SDK模块
+          const { requestFullscreen, exitFullscreen, isFullscreen } = await import('https://cdn.jsdelivr.net/npm/@telegram-apps/sdk@latest/dist/esm/index.mjs');
+          
+          window.FullscreenAPI = {
+            requestFullscreen: async () => {
+              if (requestFullscreen.isAvailable()) {
+                await requestFullscreen();
+                return true;
+              }
+              return false;
+            },
+            exitFullscreen: async () => {
+              if (exitFullscreen.isAvailable()) {
+                await exitFullscreen();
+                return true;
+              }
+              return false;
+            },
+            isFullscreen: () => isFullscreen()
+          };
+          console.log("使用模块方式初始化全屏API");
+        } catch (error) {
+          console.error("模块加载失败:", error);
+          useVariableAPI();
+        }
+      } else {
+        useVariableAPI();
+      }
+    }
+    
+    // 使用变量方式的全屏API
+    function useVariableAPI() {
+      window.FullscreenAPI = {
+        requestFullscreen: async () => {
+          try {
+            const { viewport } = window.TelegramAppsSDK || {};
+            if (viewport && viewport.requestFullscreen && viewport.requestFullscreen.isAvailable()) {
+              await viewport.requestFullscreen();
+              return true;
+            }
+          } catch (error) {
+            console.error("请求全屏失败:", error);
+          }
+          return false;
+        },
+        exitFullscreen: async () => {
+          try {
+            const { viewport } = window.TelegramAppsSDK || {};
+            if (viewport && viewport.exitFullscreen && viewport.exitFullscreen.isAvailable()) {
+              await viewport.exitFullscreen();
+              return true;
+            }
+          } catch (error) {
+            console.error("退出全屏失败:", error);
+          }
+          return false;
+        },
+        isFullscreen: () => {
+          try {
+            const { viewport } = window.TelegramAppsSDK || {};
+            return viewport && viewport.isFullscreen ? viewport.isFullscreen() : false;
+          } catch (error) {
+            console.error("检查全屏状态失败:", error);
+            return false;
+          }
+        }
+      };
+      console.log("使用变量方式初始化全屏API");
+    }
+    
+    // 初始化全屏API
+    setupFullscreenAPI();
+  </script>
   <style>
     :root {
+      /* 默认为深色模式变量 */
       --bg-color: #121212;
       --secondary-bg: #1e1e1e;
       --card-bg: #2a2a2a;
@@ -17,6 +99,7 @@
       --search-bg: #2a2a2a;
     }
 
+    /* 当light类应用到body时，切换为浅色模式变量 */
     body.light {
       --bg-color: #f0f2f5;
       --secondary-bg: #ffffff;
@@ -197,14 +280,29 @@
   </div>
 
   <script>
-    window.onload = () => {
+    window.onload = async () => {
+      // 确保FullscreenAPI已初始化
+      if (!window.FullscreenAPI) {
+        await setupFullscreenAPI();
+      }
+
       if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();  // 展开到最大可用高度
         tg.enableClosingConfirmation(); // 启用关闭确认
         
+        // 尝试启用全屏模式
+        try {
+          const result = await window.FullscreenAPI.requestFullscreen();
+          console.log("全屏模式请求结果:", result);
+        } catch (error) {
+          console.error("启用全屏模式时出错:", error);
+        }
+        
+        // 根据 Telegram 主题设置应用颜色方案
         const applyColorScheme = () => {
+          // 检查 Telegram WebApp 当前颜色主题
           if (tg.colorScheme === 'light') {
             document.body.classList.add('light');
             tg.setHeaderColor('#f0f2f5'); // 设置标题栏为浅色
@@ -214,10 +312,13 @@
           }
         };
         
+        // 应用初始颜色方案
         applyColorScheme();
+        
+        // 监听主题变化事件
         tg.onEvent('themeChanged', applyColorScheme);
         
-        tg.MainButton.hide(); // 隐藏主按钮
+        tg.MainButton.hide(); // 隐藏主按钮，如果存在的话
         
         // 锁定视口，防止用户缩放
         document.documentElement.style.overflow = 'hidden';
@@ -234,29 +335,45 @@
         
         document.title = "群组展示";
         
+        // 添加全屏切换按钮
+        const fullscreenToggle = document.createElement('div');
+        fullscreenToggle.style.position = 'absolute';
+        fullscreenToggle.style.top = '10px';
+        fullscreenToggle.style.right = '10px';
+        fullscreenToggle.style.padding = '8px';
+        fullscreenToggle.style.background = 'rgba(0,0,0,0.5)';
+        fullscreenToggle.style.borderRadius = '50%';
+        fullscreenToggle.style.color = 'white';
+        fullscreenToggle.style.cursor = 'pointer';
+        fullscreenToggle.style.zIndex = '1000';
+        fullscreenToggle.innerHTML = '📺';
+        fullscreenToggle.title = '切换全屏';
+        
+        // 全屏切换功能
+        fullscreenToggle.addEventListener('click', async () => {
+          try {
+            if (await window.FullscreenAPI.isFullscreen()) {
+              await window.FullscreenAPI.exitFullscreen();
+              console.log("已退出全屏模式");
+            } else {
+              await window.FullscreenAPI.requestFullscreen();
+              console.log("已进入全屏模式");
+            }
+          } catch (error) {
+            console.error("切换全屏模式时出错:", error);
+          }
+        });
+        
+        document.body.appendChild(fullscreenToggle);
+        
+        // 启用返回按钮
         tg.BackButton.show();
         tg.BackButton.onClick(() => {
+          // 返回按钮被点击时执行的操作
           if (confirm("确定要退出应用吗？")) {
             tg.close();
           }
         });
-
-        // Fullscreen Check and Request
-        const viewport = window.Telegram.WebApp.viewport;
-
-        if (viewport.requestFullscreen.isAvailable()) {
-          document.getElementById('fullscreenBtn').style.display = 'block'; // Show fullscreen button if available
-        }
-
-        // Fullscreen button functionality
-        document.getElementById('fullscreenBtn').addEventListener('click', () => {
-          viewport.requestFullscreen().then(() => {
-            console.log("Mini App is now in fullscreen mode.");
-          }).catch((error) => {
-            console.error("Failed to enter fullscreen:", error);
-          });
-        });
-
       } else {
         document.body.innerHTML = '<p style="text-align:center;padding:20px;">请在 Telegram 应用中打开此页面</p>';
         return;
@@ -281,4 +398,20 @@
           const name = item.querySelector('.name').textContent.toLowerCase();
           const category = item.getAttribute('data-category');
           const matchKeyword = name.includes(keyword);
-          const matchCategory = category ===
+          const matchCategory = category === currentCategory;
+          item.style.display = matchKeyword && matchCategory ? 'flex' : 'none';
+        });
+      }
+
+      // 浏览器关闭提示（可选）
+      window.addEventListener('beforeunload', function (e) {
+        e.preventDefault();
+        e.returnValue = '你确定要关闭此页面吗？';
+      });
+
+      filterGroups();
+      window.selectTab = selectTab;
+    };
+  </script>
+</body>
+</html>
